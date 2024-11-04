@@ -19,3 +19,50 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Kernel.php'
 
+    App\Api\EventListener\Http\ExceptionListener:
+        tags:
+            - { name: kernel.event_listener, event: kernel.exception, method: onKernelException }
+
+
+    App\Api\Controller\:
+        resource: '../src/Api/Controller'
+        tags: ['controller.service_arguments']
+
+    App\CreditProcessing\Application\:
+        resource: '../src/CreditProcessing/Application/**/*{Handler.php}'
+        public: true
+
+    App\Util\Domain\EventDispatcher\MessengerEventDispatcher:
+        arguments:
+            - '@messenger.default_bus'
+
+    App\Util\Domain\EventDispatcher\EventDispatcher:
+        alias: App\Util\Domain\EventDispatcher\MessengerEventDispatcher
+        public: true
+
+    App\Util\Domain\EventDispatcher\SymfonyEventDispatcherAdapter:
+        arguments:
+            - '@event_dispatcher'
+        public: true
+
+    App\Util\Messenger\MessageHandler:
+        tags: [ messenger.message_handler ]
+        arguments:
+            - '@App\Util\Domain\EventDispatcher\SymfonyEventDispatcherAdapter'
+
+    CreditProcessing\Infrastructure\EventListener\SmsNotificationListener:
+        tags:
+            - { name: kernel.event_listener, event: App\CreditProcessing\Domain\Credit\CreditIssued, method: onCreditIssued }
+
+    CreditProcessing\Infrastructure\EventListener\EmailNotificationListener:
+        tags:
+            - { name: kernel.event_listener, event: App\CreditProcessing\Domain\Credit\CreditIssued, method: onCreditIssued }
+
+when@test:
+    services:
+        App\Util\Domain\EventDispatcher\EventDispatcher:
+            alias: App\Util\Domain\EventDispatcher\RecordInMemoryEventDispatcher
+            public: true
+
+        App\Util\Domain\EventDispatcher\RecordInMemoryEventDispatcher:
+            public: true

@@ -1,6 +1,8 @@
 doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
+        types:
+            ssn: App\CreditProcessing\Infrastructure\Doctrine\Type\SsnType
 
         # IMPORTANT: You MUST configure your server version,
         # either here or in the DATABASE_URL env var (see .env file)
@@ -17,6 +19,13 @@ doctrine:
         identity_generation_preferences:
             Doctrine\DBAL\Platforms\PostgreSQLPlatform: identity
         auto_mapping: true
+        mappings:
+            CreditProcessing:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/CreditProcessing/Domain'
+                prefix: 'App\CreditProcessing\Domain'
+                alias: App
         controller_resolver:
             auto_mapping: false
 
