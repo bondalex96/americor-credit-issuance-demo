@@ -1,0 +1,7 @@
+restApiV1:
+    resource:
+        path: ../src/Api/Controller/
+        namespace: App\Api\Controller
+    type: attribute
+    name_prefix: v1_
+    prefix: /v1

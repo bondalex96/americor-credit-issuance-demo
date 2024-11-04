@@ -1,0 +1,13 @@
+parameters:
+    level: 6
+    paths:
+        - bin/
+        - config/
+        - public/
+        - src/
+        - tests/
+    ignoreErrors:
+        - "#^Method .* return type has no value type specified in iterable type array.#"
+        - "#^Method .* has parameter .* with no value type specified in iterable type array.#"
+        - "#^Property .* type has no value type specified in iterable type array.#"
+        - "#^Property .* with generic interface .* does not specify its types: T#"
