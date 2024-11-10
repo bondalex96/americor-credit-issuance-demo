@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\CreditProcessing\Domain\Credit;
 
+use App\CreditProcessing\Domain\Client\Client;
 use App\CreditProcessing\Domain\Client\SSN;
+use App\CreditProcessing\Domain\Credit\Product\Product;
 use App\Util\Domain\Model\AggregateRoot;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
@@ -35,12 +37,13 @@ class CreditApplication extends AggregateRoot
 
 
     private function __construct(
-        SSN $clientId,
+        SSN    $clientId,
         string $product,
-        int $term,
-        float $interestRate,
-        float $amount,
-    ) {
+        int    $term,
+        float  $interestRate,
+        float  $amount,
+    )
+    {
         $this->id = Uuid::v4();
         $this->clientId = $clientId;
         $this->productName = $product;
@@ -49,6 +52,34 @@ class CreditApplication extends AggregateRoot
         $this->amount = $amount;
     }
 
+
+    public static function issue(
+        Client             $client,
+        Product            $product,
+        int                $term,
+        float              $amount,
+        EligibilityChecker $eligibilityChecker
+    ): self
+    {
+
+        if (!$eligibilityChecker->checkIsEligible($client)) {
+            throw new \DomainException('Credit application denied');
+        }
+
+        $interestRate = $product->calculateInterestRate($client);
+
+        $credit = new self($client->getId(), $product->getName(), $term, $interestRate, $amount);
+
+        $credit->recordEvent(new CreditIssued(
+            creditId: (string)$credit->getId(),
+            clientName: $client->getName()->getFullName(),
+            clientPhone: $client->getPhoneNumber()->getValue(),
+            clientEmail: $client->getEmail()->getValue(),
+            creditAmount: $credit->getAmount()
+        ));
+
+        return $credit;
+    }
 
     public function getId(): Uuid
     {
